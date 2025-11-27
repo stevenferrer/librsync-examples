@@ -1,0 +1,16 @@
+NamespaceIndentation: All
+BreakTemplateDeclarations: Yes
+SpaceAfterTemplateKeyword: false
+
+BraceWrapping:
+  AfterExternBlock: "true"
+  AfterClass: "false"
+  AfterControlStatement: "false"
+  AfterEnum: "false"
+  AfterFunction: "false"
+  AfterNamespace: "false"
+  AfterStruct: "false"
+  AfterUnion: "false"
+  BeforeCatch: "true"
+  BeforeElse: "true"
+  IndentBraces: "false"

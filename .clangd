@@ -1,0 +1,10 @@
+CompileFlags:
+  Add: [-xc++, -std=c++17]
+  Compiler: clang++
+
+InlayHints:
+  BlockEnd: No
+  Designators: No
+  Enabled: Yes
+  ParameterNames: No
+  DeducedTypes: Yes
