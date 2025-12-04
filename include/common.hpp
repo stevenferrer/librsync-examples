@@ -1,10 +1,11 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#include <boost/asio.hpp>
 #include <cerrno>
 #include <cstdint>
 #include <iostream>
+
+#include <boost/asio.hpp>
 
 namespace common {
 

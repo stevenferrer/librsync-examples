@@ -86,7 +86,7 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
       return -1;
     }
 
-    /* The job should take care of draining the buffers */
+    // The job should take care of draining the buffers
   } while (res != rs::RS_DONE);
 
   return 0;
@@ -121,9 +121,9 @@ static int send_delta(asio::ip::tcp::socket &sock, rsw::Sig &sig,
 
   do {
     // TODO: Understand buffers more
-    std::cout << "avail_in: " << bufs.avail_in
-              << ", avail_out: " << bufs.avail_out
-              << ", eof_in: " << bufs.eof_in << "\n";
+    // std::cout << "avail_in: " << bufs.avail_in
+    //           << ", avail_out: " << bufs.avail_out
+    //           << ", eof_in: " << bufs.eof_in << "\n";
 
     if ((bufs.eof_in == 0) && (bufs.avail_in < sizeof(in_buf))) {
       if (bufs.avail_in > 0) {
