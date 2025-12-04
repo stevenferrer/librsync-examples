@@ -10,16 +10,17 @@
 #include "librsyncw.hpp"
 
 using namespace boost;
+namespace fs = std::filesystem;
 
 static std::vector<char> in_buf(common::BUFFER_SIZE * 2),
     out_buf(common::BUFFER_SIZE);
 
 static int recv_sign(asio::ip::tcp::socket &, rsw::Sig &sig);
 static int send_delta(asio::ip::tcp::socket &, rsw::Sig &sig,
-                      const std::filesystem::path &fpath);
+                      const fs::path &fpath);
 
 int main(int argc, char *argv[]) {
-  const std::filesystem::path fpath = (argc >= 2) ? argv[1] : nullptr;
+  const fs::path fpath = (argc >= 2) ? argv[1] : nullptr;
 
   using namespace boost::asio::ip;
 
@@ -93,7 +94,7 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
 }
 
 static int send_delta(asio::ip::tcp::socket &sock, rsw::Sig &sig,
-                      const std::filesystem::path &fpath) {
+                      const fs::path &fpath) {
   using namespace rsw;
 
   // initialize signature hashtable
