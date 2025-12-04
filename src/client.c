@@ -200,7 +200,7 @@ static int send_signature(int sock, const char *fname) {
 static int recv_delta_and_patch_file(int sock, const char *fname_old) {
   const int use_io_stream =
       (fname_old == NULL) || (strcmp(fname_old, "-") == 0);
-  printf("use io stream: %d\n", use_io_stream);
+  // printf("use io stream: %d\n", use_io_stream);
 
   const char *fname_new = NULL;
   char path[PATH_MAX];
@@ -212,7 +212,7 @@ static int recv_delta_and_patch_file(int sock, const char *fname_old) {
     }
     fname_new = path;
 
-    printf("filename: %s\n", fname_new);
+    // printf("filename: %s\n", fname_new);
   }
 
   /* Open new file */
@@ -236,8 +236,6 @@ static int recv_delta_and_patch_file(int sock, const char *fname_old) {
 
   rs_result res;
   do {
-    sleep(1);
-
     if ((bufs.eof_in == 0) && (bufs.avail_in < BUFFER_SIZE)) {
       if (bufs.avail_in > 0) {
         /* Left over tail data, move to front */
