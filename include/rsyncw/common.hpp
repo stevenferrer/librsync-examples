@@ -9,13 +9,14 @@
 namespace common {
 
   using namespace boost;
-  using namespace boost::asio::ip;
-  using namespace boost::asio::detail;
 
   const int PORT = 5612;
   const int BUFFER_SIZE = 4095;
 
-  int send_message(tcp::socket &sock, const char *msg, size_t len, int eof) {
+  int send_message(asio::ip::tcp::socket &sock, const char *msg, size_t len,
+                   int eof) {
+    using namespace boost::asio::detail;
+
     assert(len <= BUFFER_SIZE);
 
     uint16_t header = (uint16_t)len << 4;
@@ -31,11 +32,11 @@ namespace common {
     // send header
     boost::system::error_code error;
     do {
-      auto ret = boost::asio::write(
+      auto ret = asio::write(
           sock, asio::buffer(&header + n_bytes, sizeof(header) - n_bytes),
           error);
       if (error) {
-        if (error == boost::asio::error::interrupted) {
+        if (error == asio::error::interrupted) {
           continue;
         }
 
@@ -51,11 +52,11 @@ namespace common {
       n_bytes = 0;
 
       do {
-        auto ret = boost::asio::write(
-            sock, asio::buffer(msg + n_bytes, len - n_bytes), error);
+        auto ret = asio::write(sock, asio::buffer(msg + n_bytes, len - n_bytes),
+                               error);
 
         if (error) {
-          if (error == boost::asio::error::interrupted) {
+          if (error == asio::error::interrupted) {
             continue;
           }
 
@@ -70,18 +71,21 @@ namespace common {
     return 0;
   }
 
-  int recv_message(tcp::socket &sock, char *msg, size_t *len, int *eof) {
+  int recv_message(asio::ip::tcp::socket &sock, char *msg, size_t *len,
+                   int *eof) {
+    using namespace boost::asio::detail;
+
     uint16_t header;
     size_t n_bytes = 0;
 
     boost::system::error_code error;
     do {
-      auto ret = boost::asio::read(
+      auto ret = asio::read(
           sock,
           boost::asio::buffer(&header + n_bytes, sizeof(header) - n_bytes),
           error);
       if (error) {
-        if (error == boost::asio::error::interrupted) {
+        if (error == asio::error::interrupted) {
           continue;
         }
 
@@ -104,10 +108,10 @@ namespace common {
       // read payload
       n_bytes = 0;
       do {
-        auto ret = boost::asio::read(
-            sock, boost::asio::buffer(msg + n_bytes, *len - n_bytes), error);
+        auto ret = asio::read(sock, asio::buffer(msg + n_bytes, *len - n_bytes),
+                              error);
         if (error) {
-          if (error == boost::asio::error::interrupted) {
+          if (error == asio::error::interrupted) {
             continue;
           }
 
