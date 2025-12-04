@@ -4,7 +4,7 @@ project(
   'cpp',
   version: '0.1',
   meson_version: '>= 1.9.0',
-  default_options: ['warning_level=3', 'cpp_std=c++17'],
+  default_options: ['warning_level=3', 'cpp_std=c++20'],
 )
 
 # subproject('librsync')
@@ -18,23 +18,33 @@ cc = meson.get_compiler('c')
 librsync_dep = cc.find_library('rsync', required: true, dirs: ['/usr/local/lib'])
 boost_dep = dependency('boost', version: '>=1.89')
 
-server_exe = executable(
+executable(
   'server',
   'src/server.c',
   include_directories: [inc_dir, librsync_inc_dir],
   dependencies: [librsync_dep],
 )
 
-client_exe = executable(
+executable(
   'client',
   'src/client.c',
   include_directories: [inc_dir, librsync_inc_dir],
   dependencies: [librsync_dep],
 )
 
-server2_exe = executable(
+executable(
   'server2',
   'src/server2.cpp',
+  include_directories: [
+    librsync_inc_dir,
+    inc_dir2,
+  ],
+  dependencies: [boost_dep, librsync_dep],
+)
+
+executable(
+  'client2',
+  'src/client2.cpp',
   include_directories: [
     librsync_inc_dir,
     inc_dir2,
