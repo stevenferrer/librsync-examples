@@ -7,6 +7,25 @@
 
 #include <boost/asio.hpp>
 
+/*
+ * Simple network protocol on top of TCP. Used for client-server communication
+ * in the Stream API example code.
+ *
+ * Header format:
+ *   +----------+----------+----------|
+ *   | SDU Len. | Reserved | EoF Flag |
+ *   +----------+----------+----------+
+ *   | 12 bits  | 3 bits   | 1 bit    |
+ *   +----------+----------+----------|
+ *
+ * The header fields are defined as follows:
+ * SDU Length           Length of the SDU (i.e. payload) encapsulated within
+ *                      this datagram.
+ * Reserved             3 bits reserved for future use.
+ * End-of-File Flag     Determines whether or not the receiver should expect
+ *                      to receive more datagrams.
+ * */
+
 namespace common {
 
   using namespace boost;
