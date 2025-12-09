@@ -24,7 +24,8 @@
  * Reserved             3 bits reserved for future use.
  * End-of-File Flag     Determines whether or not the receiver should expect
  *                      to receive more datagrams.
- * */
+ *
+ */
 
 namespace common {
 

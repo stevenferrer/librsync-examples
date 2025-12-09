@@ -24,9 +24,10 @@ static std::vector<char> in_buf(common::BUFFER_SIZE * 2),
 static int send_signature(asio::ip::tcp::socket &sock, const fs::path &path);
 static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
                                      const fs::path &fpath);
+static int recv_metadata(asio::ip::tcp::socket &sock, fs::path &fpath);
+static int create_file_if_not_exist(const fs::path &fpath);
 
 int main(int argc, char *argv[]) {
-  const fs::path fpath = (argc >= 2) ? argv[1] : nullptr;
 
   using namespace boost::asio::ip;
 
@@ -37,8 +38,23 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Connected to server at " << server_ip << '\n';
 
+    fs::path fpath;
+    std::cout << "Receiving metadata...\n";
+    auto ret = recv_metadata(socket, fpath);
+    if (ret == -1) {
+      std::cout << "Failed.\n";
+      return EXIT_FAILURE;
+    }
+
+    std::cout << "Create file if not exist...\n";
+    ret = create_file_if_not_exist(fpath);
+    if (ret == -1) {
+      std::cout << "Failed.\n";
+      return EXIT_FAILURE;
+    }
+
     std::cout << "Sending signature...\n";
-    auto ret = send_signature(socket, fpath);
+    ret = send_signature(socket, fpath);
     if (ret == -1) {
       std::cout << "Failed.\n";
       return EXIT_FAILURE;
@@ -55,6 +71,31 @@ int main(int argc, char *argv[]) {
   } catch (std::exception &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
   }
+}
+
+static int recv_metadata(asio::ip::tcp::socket &sock, fs::path &fpath) {
+  std::string msg;
+  size_t len;
+  int eof;
+  auto ret = common::recv_message(sock, msg.data(), &len, &eof);
+  if (ret == -1) {
+    return -1;
+  }
+
+  // (optional) indicate that the file is a copy
+  fpath = std::format("(copy) {}", msg.data());
+
+  return 0;
+}
+
+static int create_file_if_not_exist(const fs::path &fpath) {
+  std::ofstream ofs(fpath);
+  if (!ofs.is_open()) {
+    std::cerr << "Error opening file.\n";
+    return -1;
+  }
+
+  return 0;
 }
 
 static int send_signature(asio::ip::tcp::socket &sock, const fs::path &fpath) {
@@ -127,8 +168,8 @@ static int send_signature(asio::ip::tcp::socket &sock, const fs::path &fpath) {
     if (present > 0 || res == rs::RS_DONE) {
       // drain output buffer
       assert(present <= common::BUFFER_SIZE);
-      int ret = common::send_message(sock, out_buf.data(), present,
-                                     (res == rs::RS_DONE) ? 1 : 0);
+      bool eof = (res == rs::RS_DONE) ? 1 : 0;
+      int ret = common::send_message(sock, out_buf.data(), present, eof);
       if (ret == -1) {
         return -1;
       }
@@ -148,7 +189,7 @@ static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
                                      const fs::path &fpath) {
   using namespace rsw;
 
-  fs::path fpath_new(std::format("{}.new", fpath.string()));
+  fs::path fpath_new(std::format("{}.tmp", fpath.string()));
 
   // open new file
   std::ofstream ofs(fpath_new, std::ios::binary);

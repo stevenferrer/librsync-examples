@@ -44,14 +44,10 @@ Run the server.
 ./build/server foo.txt
 ```
 
-Create an empty file `foo2.txt`.
-
-```sh
-touch foo2.txt
-```
-
 Run the client.
 
 ```sh
-./build/client foo2.txt
+./build/client
 ```
+
+A copy of `foo.txt` should now be created.

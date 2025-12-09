@@ -18,6 +18,7 @@ static std::vector<char> in_buf(common::BUFFER_SIZE * 2),
 static int recv_sign(asio::ip::tcp::socket &, rsw::Sig &sig);
 static int send_delta(asio::ip::tcp::socket &, rsw::Sig &sig,
                       const fs::path &fpath);
+static int send_metadata(asio::ip::tcp::socket &, const fs::path &fpath);
 
 int main(int argc, char *argv[]) {
   const fs::path fpath = (argc >= 2) ? argv[1] : nullptr;
@@ -33,9 +34,16 @@ int main(int argc, char *argv[]) {
     tcp::socket socket(io_context);
     acceptor.accept(socket);
 
+    std::cout << "Sending metadata...\n";
+    auto ret = send_metadata(socket, fpath);
+    if (ret == -1) {
+      std::cout << "Failed.\n";
+      return EXIT_FAILURE;
+    }
+
     std::cout << "Receiving signature...\n";
     rsw::Sig sig;
-    auto ret = recv_sign(socket, sig);
+    ret = recv_sign(socket, sig);
     if (ret == -1) {
       std::cout << "Failed.\n";
       return EXIT_FAILURE;
@@ -51,6 +59,11 @@ int main(int argc, char *argv[]) {
   } catch (std::exception &e) {
     std::cerr << "Exception: " << e.what() << std::endl;
   }
+}
+
+static int send_metadata(asio::ip::tcp::socket &sock, const fs::path &fpath) {
+  auto s = fpath.string();
+  return common::send_message(sock, s.c_str(), s.length(), 1);
 }
 
 static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
