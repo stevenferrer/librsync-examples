@@ -77,7 +77,7 @@ static int recv_metadata(asio::ip::tcp::socket &sock, fs::path &fpath) {
   std::string msg;
   size_t len;
   int eof;
-  auto ret = common::recv_message(sock, msg.data(), &len, &eof);
+  auto ret = common::recv_message(sock, msg.data(), len, eof);
   if (ret == -1) {
     return -1;
   }
@@ -224,7 +224,7 @@ static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
 
       size_t n_bytes;
       int ret = common::recv_message(sock, in_buf.data() + bufs.avail_in,
-                                     &n_bytes, &bufs.eof_in);
+                                     n_bytes, bufs.eof_in);
       if (ret == -1) {
         return -1;
       }
