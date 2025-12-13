@@ -86,7 +86,7 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
 
       size_t n_bytes;
       int ret = common::recv_message(sock, in_buf.data() + bufs.avail_in,
-                                     &n_bytes, &bufs.eof_in);
+                                     n_bytes, bufs.eof_in);
       if (ret == -1) {
         return -1;
       }
