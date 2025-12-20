@@ -15,8 +15,8 @@ namespace fs = std::filesystem;
 static std::vector<char> in_buf(common::BUFFER_SIZE * 2),
     out_buf(common::BUFFER_SIZE);
 
-static int recv_sign(asio::ip::tcp::socket &, rsw::Sig &sig);
-static int send_delta(asio::ip::tcp::socket &, rsw::Sig &sig,
+static int recv_sign(asio::ip::tcp::socket &, rsw::Signature &sig);
+static int send_delta(asio::ip::tcp::socket &, rsw::Signature &sig,
                       const fs::path &fpath);
 static int send_metadata(asio::ip::tcp::socket &, const fs::path &fpath);
 
@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "Receiving signature...\n";
-    rsw::Sig sig;
+    rsw::Signature sig{};
     ret = recv_sign(socket, sig);
     if (ret == -1) {
       std::cout << "Failed.\n";
@@ -66,12 +66,11 @@ static int send_metadata(asio::ip::tcp::socket &sock, const fs::path &fpath) {
   return common::send_message(sock, s.c_str(), s.length(), 1);
 }
 
-static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
+static int recv_sign(asio::ip::tcp::socket &sock, rsw::Signature &sig) {
   using namespace rsw;
 
   // calculate signature of a file
-  Job job;
-  job.loadsig_begin(sig);
+  auto job = Job::loadsig_begin(sig);
 
   // setup buffers
   rs::rs_buffers_t bufs = {0};
@@ -95,7 +94,7 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
       bufs.avail_in += n_bytes;
     }
 
-    res = job.iter(&bufs);
+    res = job->iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }
@@ -106,13 +105,12 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Sig &sig) {
   return 0;
 }
 
-static int send_delta(asio::ip::tcp::socket &sock, rsw::Sig &sig,
+static int send_delta(asio::ip::tcp::socket &sock, rsw::Signature &sig,
                       const fs::path &fpath) {
   using namespace rsw;
 
-  // initialize signature hashtable
-  rs::rs_result res = rs::rs_build_hash_table(sig.__sig);
-  if (res != rsw::rs::RS_DONE) {
+  auto res = sig.build_hash_table();
+  if (res != rs::RS_DONE) {
     return -1;
   }
 
@@ -124,8 +122,7 @@ static int send_delta(asio::ip::tcp::socket &sock, rsw::Sig &sig,
   }
 
   // calculate delta between a signature and a new file
-  Job job;
-  job.delta_begin(sig);
+  auto job = Job::delta_begin(sig);
 
   // setup buffers
   rs::rs_buffers_t bufs = {0};
@@ -162,7 +159,7 @@ static int send_delta(asio::ip::tcp::socket &sock, rsw::Sig &sig,
     }
 
     // Process current iteration
-    res = job.iter(&bufs);
+    res = job->iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }

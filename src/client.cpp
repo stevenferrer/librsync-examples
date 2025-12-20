@@ -122,8 +122,7 @@ static int send_signature(asio::ip::tcp::socket &sock, const fs::path &fpath) {
   }
 
   // start generating signature
-  rsw::Job job;
-  job.sig_begin(block_len, strong_len, sig_magic);
+  auto job = Job::sig_begin(block_len, strong_len, sig_magic);
 
   // setup buffers
   rs::rs_buffers_t bufs = {0};
@@ -159,7 +158,7 @@ static int send_signature(asio::ip::tcp::socket &sock, const fs::path &fpath) {
     }
 
     // Process current iteration
-    res = job.iter(&bufs);
+    res = job->iter(&bufs);
     if (res != rsw::rs::RS_DONE && res != rsw::rs::RS_BLOCKED) {
       return -1;
     }
@@ -204,8 +203,7 @@ static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
   assert(f_old != NULL);
 
   // start job
-  Job job;
-  job.patch_begin(f_old);
+  auto job = Job::patch_begin(f_old);
 
   // QQ: What's the difference between
   // sizeof(out_buf) and sizeof(out_buf.data())
@@ -235,7 +233,7 @@ static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
       bufs.avail_in += n_bytes;
     }
 
-    res = job.iter(&bufs);
+    res = job->iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }
