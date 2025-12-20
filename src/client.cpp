@@ -89,7 +89,8 @@ static int recv_metadata(asio::ip::tcp::socket &sock, fs::path &fpath) {
 }
 
 static int create_file_if_not_exist(const fs::path &fpath) {
-  std::ofstream ofs(fpath);
+  // open in append mode
+  std::ofstream ofs(fpath, std::ios::app | std::ios::binary);
   if (!ofs.is_open()) {
     std::cerr << "Error opening file.\n";
     return -1;
