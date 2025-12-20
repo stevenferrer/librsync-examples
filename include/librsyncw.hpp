@@ -4,7 +4,9 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
+#include <functional>
 #include <memory>
+#include <utility>
 
 namespace rsw {
   namespace rs {
@@ -18,6 +20,7 @@ namespace rsw {
 
   class Signature {
   private:
+    // TODO: smart ptr here also?
     rs::rs_signature_t *sig;
 
   public:
@@ -33,62 +36,56 @@ namespace rsw {
   };
 
   class Job {
-  public:
-    // job unique ptr alias
-    typedef std::unique_ptr<Job> Ptr;
+  private:
+    using JobPtr =
+        std::unique_ptr<rs::rs_job_t, std::function<void(rs::rs_job_t *)>>;
 
-    ~Job() {
-      // rs_job_t can own rs_signature_t(sumset),
-      // when job_name is "signature", in that case
-      // rs_signature is also freed
-      rs::rs_job_free(job);
+    JobPtr jptr;
+
+    // private so we cannot stack allocate, only thru factory methods
+    explicit Job(JobPtr &jptr) : jptr{std::move(jptr)} {};
+
+    static Job make_job(rs::rs_job_t *j) {
+      JobPtr jptr(j, rs::rs_job_free);
+      return Job{jptr};
     }
 
+  public:
     rs::rs_result iter(rs::rs_buffers_t *bufs) {
-      rs::rs_result res = rs::rs_job_iter(job, bufs);
+      rs::rs_result res = rs::rs_job_iter(jptr.get(), bufs);
       return res;
     }
 
     // job factory methods
 
-    static Ptr loadsig_begin(Signature &sig) {
+    static Job loadsig_begin(Signature &sig) {
       auto job = rs::rs_loadsig_begin(&sig.sig);
       assert(job != NULL);
 
-      auto j = std::unique_ptr<Job>(new Job(job));
-      return j;
+      return make_job(job);
     }
 
-    static Ptr delta_begin(Signature &sig) {
+    static Job delta_begin(Signature &sig) {
       auto job = rs::rs_delta_begin(sig.sig);
       assert(job != NULL);
 
-      auto j = std::unique_ptr<Job>(new Job(job));
-      return j;
+      return make_job(job);
     }
 
-    static Ptr sig_begin(size_t block_len, size_t strong_len,
+    static Job sig_begin(size_t block_len, size_t strong_len,
                          rs::rs_magic_number sig_magic) {
       auto job = rs::rs_sig_begin(block_len, strong_len, sig_magic);
       assert(job != NULL);
 
-      auto j = std::unique_ptr<Job>(new Job(job));
-      return j;
+      return make_job(job);
     }
 
-    static Ptr patch_begin(FILE *file) {
+    static Job patch_begin(FILE *file) {
       auto job = rs::rs_patch_begin(rs::rs_file_copy_cb, file);
       assert(job != NULL);
 
-      auto j = std::unique_ptr<Job>(new Job(job));
-      return j;
+      return make_job(job);
     }
-
-  private:
-    rs::rs_job_t *job;
-
-    // private so we cannot stack allocate, only thru factory methods
-    Job(rs::rs_job_t *job) : job{job} {};
   };
 } // namespace rsw
 

@@ -158,7 +158,7 @@ static int send_signature(asio::ip::tcp::socket &sock, const fs::path &fpath) {
     }
 
     // Process current iteration
-    res = job->iter(&bufs);
+    res = job.iter(&bufs);
     if (res != rsw::rs::RS_DONE && res != rsw::rs::RS_BLOCKED) {
       return -1;
     }
@@ -233,7 +233,7 @@ static int recv_delta_and_patch_file(asio::ip::tcp::socket &sock,
       bufs.avail_in += n_bytes;
     }
 
-    res = job->iter(&bufs);
+    res = job.iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }

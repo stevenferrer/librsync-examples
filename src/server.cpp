@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     }
 
     std::cout << "Receiving signature...\n";
-    rsw::Signature sig{};
+    rsw::Signature sig;
     ret = recv_sign(socket, sig);
     if (ret == -1) {
       std::cout << "Failed.\n";
@@ -94,7 +94,7 @@ static int recv_sign(asio::ip::tcp::socket &sock, rsw::Signature &sig) {
       bufs.avail_in += n_bytes;
     }
 
-    res = job->iter(&bufs);
+    res = job.iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }
@@ -159,7 +159,7 @@ static int send_delta(asio::ip::tcp::socket &sock, rsw::Signature &sig,
     }
 
     // Process current iteration
-    res = job->iter(&bufs);
+    res = job.iter(&bufs);
     if (res != rs::RS_DONE && res != rs::RS_BLOCKED) {
       return -1;
     }
